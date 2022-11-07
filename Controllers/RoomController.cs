@@ -26,6 +26,7 @@ namespace HogwartsPotions.Controllers
         public async  Task AddRoom([FromBody] Room room)
         {
             await _context.AddRoom(room);
+            _context.SaveChanges();
         }
 
         [HttpGet("/{id}")]
