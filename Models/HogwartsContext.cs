@@ -104,13 +104,10 @@ namespace HogwartsPotions.Models
                 .Where(d => d.ID == studentId)
                 .FirstOrDefaultAsync();
 
-            if (chefStudent == null)
-            {
-                chefStudent = new Student();
-            }
+            
 
-            ChangeTracker.Clear();
-            SaveChanges();
+            /*ChangeTracker.Clear();
+            SaveChanges();*/
             
 
             /*foreach (var student in Students)
@@ -137,11 +134,19 @@ namespace HogwartsPotions.Models
 
                 if ((potionIngredientsNames.Count() == recipeIngredientsNames.Count()) && !potionIngredientsNames.Except(recipeIngredientsNames).Any())
                 {
-                    potion.Recipe = recipe;
-                    potion.Name = $"{chefStudent.Name} {potion.BrewingStatus == BrewingStatus.Replica} #{random.Next(0, 99)}";
-                    await Potions.AddAsync(potion);
+                    var newPotion = new Potion
+                    {
+                        Name = $"{chefStudent.Name} {potion.BrewingStatus = BrewingStatus.Replica} #{random.Next(0, 99)}",
+                        Ingredients = recipe.Ingredients.ToList(),
+                        Recipe = recipe,
+                        BrewingStatus = BrewingStatus.Replica,
+                        Student = chefStudent
+                    };
                     
-                    return potion;
+                    await Potions.AddAsync(newPotion);
+
+                    SaveChanges();
+                    return newPotion;
                 }
             }
 
@@ -152,21 +157,29 @@ namespace HogwartsPotions.Models
                 Student = chefStudent
 
             };
-            
+
+            potion.Student = chefStudent;
 
             potion.Recipe = newRecipe;
 
-            await Recipes.AddAsync(newRecipe);
+            //await Recipes.AddAsync(newRecipe);
 
-            ChangeTracker.Clear();
-            SaveChanges();
+            /*ChangeTracker.Clear();
+            SaveChanges();*/
 
             await Potions.AddAsync(potion);
 
-            ChangeTracker.Clear();
+            //ChangeTracker.Clear();
             SaveChanges();
 
             return potion;
+        }
+
+        public async Task<List<Potion>> GetPotionByStudentId(long studentId)
+        {
+            var filteredPotions = await Potions.Where(p => p.Student.ID == studentId).ToListAsync();
+
+            return filteredPotions;
         }
     }
 }
