@@ -71,14 +71,17 @@ namespace HogwartsPotions.Models
 
         public Task<List<Student>> GetAllStudents()
         {
-            var result = Task.Run(() => Students.ToList());
-            return result;
+            var students = Students.ToListAsync();
+            return students;
         }
 
         public Task<List<Potion>> GetAllPotions()
         {
-            var result = Task.Run(() => Potions.ToList());
-            return result;
+            var potions = Potions.Include(p => p.Student)
+                .Include(p => p.Recipe)
+                .Include(p => p.Ingredients)
+                .ToListAsync();
+            return potions;
         }
 
 
@@ -200,7 +203,6 @@ namespace HogwartsPotions.Models
                 Recipe = newRecipe
             };
 
-            var valami = newPotion.Ingredients;
             newPotion.Recipe.Ingredients = newPotion.Ingredients;
             newPotion.Recipe.Name = newPotion.Name;
 
@@ -211,5 +213,29 @@ namespace HogwartsPotions.Models
             return newPotion;
 
         }
+
+        public async Task<Potion> UpdatePotionById(long potionId, Ingredient ingredient)
+        {
+            var potionToUpdate = await Potions
+                .Where(p => p.ID == potionId)
+                .Include(p => p.Ingredients)
+                .Include(p => p.Student)
+                .Include(p => p.Recipe)
+                .FirstOrDefaultAsync();
+
+            Ingredient newIngredient = new Ingredient
+            {
+                Name = ingredient.Name
+            };
+
+            potionToUpdate.Ingredients.Add(newIngredient);
+            potionToUpdate.Recipe.Ingredients.Add(newIngredient);
+
+            SaveChanges();
+
+            return potionToUpdate;
+        }
+
+
     }
 }
