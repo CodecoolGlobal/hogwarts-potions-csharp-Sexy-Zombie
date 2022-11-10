@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HogwartsPotions.Models.Entities
@@ -8,5 +9,6 @@ namespace HogwartsPotions.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long ID { get; set; }
         public string Name { get; set; }
+        public Recipe Recipe { get; set; }
     }
 }
