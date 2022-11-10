@@ -24,11 +24,6 @@ namespace HogwartsPotions.Models.Entities
                     _brewingStatus = BrewingStatus.Brew;
                 }
 
-                else if (Recipe.Ingredients.Equals(Ingredients))
-                {
-                    _brewingStatus = BrewingStatus.Replica;
-                }
-
                 else
                 {
                     _brewingStatus = BrewingStatus.Discovery;
