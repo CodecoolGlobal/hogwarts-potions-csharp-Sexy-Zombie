@@ -16,11 +16,17 @@ namespace HogwartsPotions.Controllers
             _context = context;
         }
 
+
         [HttpGet]
         public async Task<List<Potion>> GetAllPotions()
         {
             return await _context.GetAllPotions();
         }
 
+        [HttpPost]
+        public async Task<Potion> BrewingPotion(Potion newPotion)
+        {
+            return await _context.BrewingPotion(newPotion);
+        }
     }
 }
