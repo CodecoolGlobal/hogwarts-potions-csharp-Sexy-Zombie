@@ -105,29 +105,14 @@ namespace HogwartsPotions.Models
                 .FirstOrDefaultAsync();
 
             
-
-            /*ChangeTracker.Clear();
-            SaveChanges();*/
-            
-
-            /*foreach (var student in Students)
-            {
-                if (student.ID == studentId)
-                {
-                    chefStudent = student;
-                }
-            }*/
-
             Random random = new Random();
 
             var recipesWithIngredients = await Recipes
                 .Include(r => r.Ingredients)
                 .ToListAsync();
 
-
             var potionIngredientsNames = potion.Ingredients.Select(x => x.Name).ToList();
-
-
+            
             foreach (var recipe in recipesWithIngredients)
             {
                 var recipeIngredientsNames = recipe.Ingredients.Select(x => x.Name).ToList();
@@ -161,15 +146,9 @@ namespace HogwartsPotions.Models
             potion.Student = chefStudent;
 
             potion.Recipe = newRecipe;
-
-            //await Recipes.AddAsync(newRecipe);
-
-            /*ChangeTracker.Clear();
-            SaveChanges();*/
-
+            
             await Potions.AddAsync(potion);
 
-            //ChangeTracker.Clear();
             SaveChanges();
 
             return potion;
@@ -177,9 +156,60 @@ namespace HogwartsPotions.Models
 
         public async Task<List<Potion>> GetPotionByStudentId(long studentId)
         {
-            var filteredPotions = await Potions.Where(p => p.Student.ID == studentId).ToListAsync();
+            var filteredPotions = await Potions
+                .Where(p => p.Student.ID == studentId)
+                .Include(p => p.Student)
+                .Include(p => p.Recipe)
+                .Include(p => p.Ingredients)
+                .ToListAsync();
 
             return filteredPotions;
+        }
+
+        public async Task<Potion> BrewRandomPotion(Student student)
+        {
+            Random random = new Random();
+            var studentId = student.ID;
+            
+
+            var ingredientList = await Ingredients.Select(i => i.Name).ToListAsync();
+            
+            Student chefStudent = await Students
+                .Where(d => d.ID == studentId)
+                .FirstOrDefaultAsync();
+
+
+            Recipe newRecipe = new Recipe
+            {
+                Name = $"{chefStudent.Name} {BrewingStatus.Brew} #{random.Next(0, 99)}",
+                Student = chefStudent,
+                Ingredients = new List<Ingredient>()
+            };
+
+            Potion newPotion = new Potion
+            {
+                Ingredients = new List<Ingredient>
+                {
+                    new Ingredient { Name = ingredientList[random.Next(0,ingredientList.Count)] },
+                    new Ingredient { Name = ingredientList[random.Next(0,ingredientList.Count)] },
+                    new Ingredient { Name = ingredientList[random.Next(0,ingredientList.Count)] },
+                    new Ingredient { Name = ingredientList[random.Next(0,ingredientList.Count)] }
+                },
+                Student = chefStudent,
+                Name = $"{chefStudent.Name} {BrewingStatus.Brew } #{random.Next(0, 99)}",
+                Recipe = newRecipe
+            };
+
+            var valami = newPotion.Ingredients;
+            newPotion.Recipe.Ingredients = newPotion.Ingredients;
+            newPotion.Recipe.Name = newPotion.Name;
+
+            Potions.Add(newPotion);
+
+            SaveChanges();
+
+            return newPotion;
+
         }
     }
 }
