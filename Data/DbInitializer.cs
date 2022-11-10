@@ -68,7 +68,7 @@ namespace HogwartsPotions.Data
             context.SaveChanges();*/
 
 
-            var recipes = new Recipe[]
+            /*var recipes = new Recipe[]
             {
                 new Recipe{ Name = "BigBumm", Student = new Student{Name= "Donald",HouseType= HouseType.Gryffindor,PetType= PetType.Owl, Room = new Room()}, Ingredients = new List<Ingredient>()
                     {new Ingredient{Name = "Bean"}, new Ingredient{Name = "Pepper"}, new Ingredient{Name = "Cocoa"}}}
@@ -79,7 +79,7 @@ namespace HogwartsPotions.Data
             {
                 context.Recipes.Add(c);
             }
-            context.SaveChanges();
+            context.SaveChanges();*/
 
 
             /*
