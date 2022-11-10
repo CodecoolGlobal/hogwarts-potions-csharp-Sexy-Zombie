@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using HogwartsPotions.Models;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Models.Enums;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 
 namespace HogwartsPotions.Models
 {
@@ -20,6 +24,12 @@ namespace HogwartsPotions.Models
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Potion> Potions { get; set; }
 
+        /*protected override void OnModelCreating(ModelBuilder constructor)
+        {
+            constructor.Entity<TeamPlayer>().HasKey(uc => new { uc.PlayerId, uc.TeamId });
+            base.OnModelCreating(constructor);
+        } */
+
 
         public HogwartsContext(DbContextOptions<HogwartsContext> options) : base(options)
         {
@@ -28,8 +38,7 @@ namespace HogwartsPotions.Models
 
         public async Task AddRoom(Room room)
         {
-            await Task.Run(() =>
-                Rooms.Add(room));
+            await Rooms.AddAsync(room);
         }
 
         public Task<Room> GetRoom(long roomId)
@@ -39,8 +48,10 @@ namespace HogwartsPotions.Models
 
         public Task<List<Room>> GetAllRooms()
         {
-            var result = Task.Run(() => Rooms.ToList());
+            var result = Rooms.ToListAsync();
             return result;
+
+            //  .ToListAsync();
         }
 
         public async Task UpdateRoom(Room room)
@@ -80,16 +91,82 @@ namespace HogwartsPotions.Models
                     { Name = "Shepherd", HouseType = HouseType.Ravenclaw, PetType = PetType.Owl, Room = new Room() },
             };
 
-            await Task.Run(() =>
-                Recipes.Add(reciepe));
+            await Recipes.AddAsync(reciepe);
 
         }
 
-        public async Task BrewingPotion(Potion potion)
+        public async Task<Potion> BrewingPotion(Potion potion)
         {
+            
+            long studentId = potion.Student.ID;
 
+            Student chefStudent = await Students
+                .Where(d => d.ID == studentId)
+                .FirstOrDefaultAsync();
+
+            if (chefStudent == null)
+            {
+                chefStudent = new Student();
+            }
+
+            ChangeTracker.Clear();
+            SaveChanges();
+            
+
+            /*foreach (var student in Students)
+            {
+                if (student.ID == studentId)
+                {
+                    chefStudent = student;
+                }
+            }*/
+
+            Random random = new Random();
+
+            var recipesWithIngredients = await Recipes
+                .Include(r => r.Ingredients)
+                .ToListAsync();
+
+
+            var potionIngredientsNames = potion.Ingredients.Select(x => x.Name).ToList();
+
+
+            foreach (var recipe in recipesWithIngredients)
+            {
+                var recipeIngredientsNames = recipe.Ingredients.Select(x => x.Name).ToList();
+
+                if ((potionIngredientsNames.Count() == recipeIngredientsNames.Count()) && !potionIngredientsNames.Except(recipeIngredientsNames).Any())
+                {
+                    potion.Recipe = recipe;
+                    potion.Name = $"{chefStudent.Name} {potion.BrewingStatus == BrewingStatus.Replica} #{random.Next(0, 99)}";
+                    await Potions.AddAsync(potion);
+                    
+                    return potion;
+                }
+            }
+
+            Recipe newRecipe = new Recipe
+            {
+                Ingredients = potion.Ingredients,
+                Name = $"{chefStudent.Name} {BrewingStatus.Discovery} #{random.Next(0, 99)}",
+                Student = chefStudent
+
+            };
+            
+
+            potion.Recipe = newRecipe;
+
+            await Recipes.AddAsync(newRecipe);
+
+            ChangeTracker.Clear();
+            SaveChanges();
+
+            await Potions.AddAsync(potion);
+
+            ChangeTracker.Clear();
+            SaveChanges();
+
+            return potion;
         }
-
-
     }
 }
