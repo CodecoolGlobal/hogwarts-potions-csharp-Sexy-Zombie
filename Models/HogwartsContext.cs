@@ -53,12 +53,14 @@ namespace HogwartsPotions.Models
             var result = Rooms.ToListAsync();
             return result;
 
-            //  .ToListAsync();
         }
 
         public async Task UpdateRoom(Room room)
         {
-            throw new NotImplementedException();
+            var roomToUpdate = await Rooms.Where(x => x.ID == room.ID).FirstOrDefaultAsync();
+            roomToUpdate.Capacity = room.Capacity;
+            roomToUpdate.Residents = room.Residents;
+            SaveChanges();
         }
 
         public async Task DeleteRoom(long id)
