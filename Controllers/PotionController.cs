@@ -46,5 +46,12 @@ namespace HogwartsPotions.Controllers
         {
             return await _context.UpdatePotionById(potionId, ingredient);
         }
+
+        [HttpGet("{potionId}/help")]
+        public async Task<List<Recipe>> GetRecipesWithLessIngredients(int potionId)
+        {
+            return await _context.GetRecipesWithLessIngredients(potionId);
+        }
+
     }
 }
